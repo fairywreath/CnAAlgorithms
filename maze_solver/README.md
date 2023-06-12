@@ -9,12 +9,16 @@ curl https://sh.rustup.rs -sSf | sh
 For Windows users and more installation information visit https://www.rust-lang.org/tools/install.
 
 ## Running
-Run 
+To build and execute the binary, run
 ```
 cargo run maze.txt
 ```
-to build and execute the binary. A relatively large game library is used, hence compilation may take a while.
+A relatively large game library is used, hence compilation may take a while.
 "maze.txt" is the argument to the maze data file.
+<br>
+The complete path, path cost and number of explored nodes will be printed in the terminal after the algorithm terminates.
+
+
 
 ## Controls
 The algorithm is default to A*.

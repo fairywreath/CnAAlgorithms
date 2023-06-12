@@ -60,14 +60,15 @@ impl Renderer {
             self.draw_cell(canvas, &cell, MazeColor::EXPANDED.0);
         }
 
+        // No need to draw path after completion
+        // if solver.is_complete() {
+        //     for cell in solver.path() {
+        //         self.draw_cell(canvas, &cell, MazeColor::PATH.0);
+        //     }
+        // }
+
         self.draw_cell(canvas, solver.start(), MazeColor::START.0);
 
         self.draw_cell(canvas, solver.end(), MazeColor::END.0);
-
-        if solver.is_complete() {
-            for cell in solver.path() {
-                self.draw_cell(canvas, &cell, MazeColor::PATH.0);
-            }
-        }
     }
 }

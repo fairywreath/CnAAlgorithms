@@ -43,6 +43,10 @@ impl MazeSolverDFS {
 
     /// 1 step of iterative DFS search, expanding the current deepest node by 1
     fn search(&mut self) {
+        if self.complete {
+            return;
+        }
+
         let mut start = None;
         while !self.current_search_positions.is_empty() {
             let cell = self.current_search_positions.pop().unwrap();

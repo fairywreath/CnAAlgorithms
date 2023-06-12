@@ -88,7 +88,7 @@ impl MazeSolverAStar {
 
     /// 1 step of iterative A* search, expanding the current deepest node by 1
     fn search(&mut self) {
-        if self.current_search_positions.is_empty() {
+        if self.current_search_positions.is_empty() || self.complete {
             return;
         }
 

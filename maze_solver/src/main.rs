@@ -34,6 +34,7 @@ struct GameState {
 
     renderer: Renderer,
 
+    path_trace: bool,
     path_position_index: usize,
     path_traced: Vec<GridPosition>,
 }
@@ -41,7 +42,9 @@ struct GameState {
 impl GameState {
     /// Reset to re-draw start -> finish path
     fn reset_path_rendering(&mut self) {
-        self.path_position_index = 0;
+        self.path_trace = false;
+        // Do not draw path over the starting node
+        self.path_position_index = 1;
         self.path_traced.clear();
     }
 }
@@ -59,10 +62,12 @@ impl EventHandler for GameState {
             solver.update();
 
             // Update path tracing
-            if solver.is_complete() && self.path_position_index < solver.path().len() {
-                self.path_traced
-                    .push(solver.path()[self.path_position_index]);
-                self.path_position_index += 1;
+            if self.path_trace {
+                if solver.is_complete() && self.path_position_index < solver.path().len() {
+                    self.path_traced
+                        .push(solver.path()[self.path_position_index]);
+                    self.path_position_index += 1;
+                }
             }
         }
 
@@ -127,6 +132,7 @@ impl EventHandler for GameState {
             }
             Some(KeyCode::T) => {
                 self.reset_path_rendering();
+                self.path_trace = true;
             }
             _ => {}
         }
@@ -189,6 +195,7 @@ fn main() {
         current_algorithm: MazeSolveAlgorithm::ASTAR,
         renderer,
 
+        path_trace: false,
         path_position_index: 0,
         path_traced: Vec::new(),
     };
