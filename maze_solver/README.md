@@ -22,6 +22,7 @@ The complete path, path cost and number of explored nodes will be printed in the
 
 ## Controls
 The algorithm is default to A*.
+Keybindings:
 - T - Trace path result
 - A - Start new A* algorithm
 - B - Start new BFS algorithm
