@@ -1,0 +1,12 @@
+[package]
+name = "easom_simulated_annealing"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argmin =  { branch = "add-simulated-annealing-temp-funcs", git = "https://github.com/fairywreath/argmin.git" }
+argmin_testfunctions = "0.1.1"
+rand = "0.8.5"
+rand_xoshiro = "0.6.0"
