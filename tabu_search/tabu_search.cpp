@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <random>
 
 // Constants
 const int SIZE = 20;
@@ -14,9 +15,17 @@ const int TABU_SIZE = 20;
 std::vector<std::vector<int>> flow_matrix;
 std::vector<std::vector<int>> distance_matrix;
 std::vector<int> current_permutation(SIZE);
-std::vector<int> bestPermutation(SIZE);
+std::vector<int> best_permutation(SIZE);
 int best_cost = std::numeric_limits<int>::max();
 std::vector<std::vector<int>> tabuList(TABU_SIZE, std::vector<int>(SIZE, -1));
+
+void print_permutation(std::vector<int>& permutation) {
+  for (const auto &element : permutation)
+  {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+}
 
 // Read flow and distance matrices from files
 void read_input()
@@ -59,7 +68,7 @@ void read_csv(const std::string &filename)
       std::string cell;
       while (std::getline(ss, cell, ','))
       {
-        std::cout << "cell " << cell << std::endl;
+        // std::cout << "cell " << cell << std::endl;
         row.push_back(std::stoi(cell));
       }
       if (filename == "Distance.csv")
@@ -105,7 +114,12 @@ void generate_init_permutation()
   {
     current_permutation[SIZE - 1 - i] = i;
   }
-  std::random_shuffle(current_permutation.begin(), current_permutation.end());
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(current_permutation.begin(), current_permutation.end(), g);
+
+  std::cout << "Initial Permutation: ";
+  print_permutation(current_permutation);
 }
 
 // swap two elements in a permutation
@@ -114,6 +128,8 @@ void swap_departments(std::vector<int> &permutation, int index1, int index2)
   int temp = permutation[index1];
   permutation[index1] = permutation[index2];
   permutation[index2] = temp;
+  // std::cout << "swappd, now permutation is: " << std::endl;
+  // print_permutation(permutation);
 }
 
 bool is_tabu(const std::vector<int> &permutation)
@@ -138,7 +154,9 @@ void update_tabu_list(const std::vector<int> &permutation)
 // perform a do_move operation by swapping two elements in the current permutation
 void do_move(std::vector<int> &permutation, int index1, int index2)
 {
+  // print_permutation(permutation);
   swap_departments(permutation, index1, index2);
+  // std::cout << "swapping " << index1 << " and " << index2 << std::endl;
   update_tabu_list(permutation);
 }
 
@@ -162,12 +180,13 @@ std::vector<std::pair<int, int>> generate_neighbourhood()
 void tabu_search_simple()
 {
   generate_init_permutation();
-  bestPermutation = current_permutation;
+  best_permutation = current_permutation;
   best_cost = calculate_cost(current_permutation);
 
   int iteration = 0;
   while (iteration < MAX_ITERATIONS)
   {
+
     std::cout << "iteration: " << iteration << std::endl;
     std::vector<std::pair<int, int>> neighborhood = generate_neighbourhood();
     int min_neighbour_cost = std::numeric_limits<int>::max();
@@ -187,15 +206,15 @@ void tabu_search_simple()
       }
     }
 
-    std::cout << "best_cost: " << best_cost << std::endl;
-    std::cout << "min_neighbour_cost: " << min_neighbour_cost << std::endl;
+    // std::cout << "best_cost: " << best_cost << std::endl;
+    // std::cout << "min_neighbour_cost: " << min_neighbour_cost << std::endl;
 
     // Update the current permutation and best solution if necessary
     if (min_neighbour_cost < best_cost)
     {
 
       current_permutation = best_neighbour_permutation;
-      bestPermutation = best_neighbour_permutation;
+      best_permutation = best_neighbour_permutation;
       best_cost = min_neighbour_cost;
     }
 
@@ -210,19 +229,8 @@ int main()
 
   tabu_search_simple();
 
-  std::cout << "Final permutation: ";
-  for (const auto &element : bestPermutation)
-  {
-    std::cout << element << " ";
-  }
-  std::cout << std::endl;
-
   std::cout << "Best permutation: ";
-  for (const auto &element : bestPermutation)
-  {
-    std::cout << element << " ";
-  }
-  std::cout << std::endl;
+  print_permutation(best_permutation);
 
   std::cout << "Best cost: " << best_cost << std::endl;
 
