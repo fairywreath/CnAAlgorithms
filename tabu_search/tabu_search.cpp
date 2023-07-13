@@ -7,11 +7,19 @@
 #include <limits>
 
 const int NUM_DEPARTMENTS = 20; // Number of departments
-const int TABU_TENURE = 5;      // Number of iterations a move remains tabu
+const int TABU_TENURE = 15;      // Number of iterations a move remains tabu
 
-// Define the flow and distance matrices as global variables
 std::vector<std::vector<int>> flow_matrix;
 std::vector<std::vector<int>> distance_matrix;
+
+void print_permutation(std::vector<int> &permutation)
+{
+  for (const auto &element : permutation)
+  {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+}
 
 void read_csv(const std::string &filename)
 {
@@ -70,7 +78,7 @@ int calculate_cost(const std::vector<int> &permutation)
 // Function to generate a random initial permutation
 std::vector<int> generate_init_permutation()
 {
-    std::vector<int> permutation(NUM_DEPARTMENTS);
+  std::vector<int> permutation(NUM_DEPARTMENTS);
   for (int i = 0; i < NUM_DEPARTMENTS; ++i)
   {
     permutation[NUM_DEPARTMENTS - 1 - i] = i;
@@ -80,11 +88,13 @@ std::vector<int> generate_init_permutation()
   std::shuffle(permutation.begin(), permutation.end(), g);
 
   std::cout << "Initial Permutation: ";
+  print_permutation(permutation);
+
   return permutation;
 }
 
 // Function to generate the neighborhood by generating all possible moves (swaps)
-std::vector<std::pair<int, int>> generateNeighborhood()
+std::vector<std::pair<int, int>> generate_neighbours()
 {
   std::vector<std::pair<int, int>> neighborhood;
   for (int i = 0; i < NUM_DEPARTMENTS - 1; ++i)
@@ -98,13 +108,13 @@ std::vector<std::pair<int, int>> generateNeighborhood()
 }
 
 // Function to perform a move (swap) between two departments in the permutation
-void performMove(std::vector<int> &permutation, int i, int j)
+void do_move(std::vector<int> &permutation, int i, int j)
 {
   std::swap(permutation[i], permutation[j]);
 }
 
 // Function to update the tabu list by decrementing the tenure of all moves
-void updateTabuList(std::vector<std::vector<int>> &tabuList)
+void update_tabu_list(std::vector<std::vector<int>> &tabuList)
 {
   for (auto &row : tabuList)
   {
@@ -119,81 +129,74 @@ void updateTabuList(std::vector<std::vector<int>> &tabuList)
 }
 
 // Function to search for the best non-tabu move in the neighborhood
-std::pair<int, int> findBestMove(const std::vector<int> &permutation, const std::vector<std::pair<int, int>> &neighborhood, const std::vector<std::vector<int>> &tabuList)
+std::pair<int, int> find_best_move(const std::vector<int> &permutation,
+                                   const std::vector<std::pair<int, int>> &neighbourhood,
+                                   const std::vector<std::vector<int>> &tabuList)
 {
-  int bestCost = std::numeric_limits<int>::max();
-  std::pair<int, int> bestMove;
-  for (const auto &move : neighborhood)
+  int best_cost = std::numeric_limits<int>::max();
+  std::pair<int, int> best_move;
+  for (const auto &move : neighbourhood)
   {
     int i = move.first;
     int j = move.second;
-    int cost = calculate_cost(permutation);
-    if (tabuList[i][j] == 0 && cost < bestCost)
+    std::vector<int> dummy = permutation;
+    std::swap(dummy[i], dummy[j]);
+    int cost = calculate_cost(dummy);
+    if (tabuList[i][j] == 0 && cost < best_cost)
     {
-      bestCost = cost;
-      bestMove = move;
+      best_cost = cost;
+      best_move = move;
     }
   }
-  return bestMove;
+  return best_move;
 }
 
 // Tabu Search algorithm
-void tabuSearch()
+void tabu_simple()
 {
   read_csv("Distance.csv");
   read_csv("Flow.csv");
-  std::vector<int> currentPermutation = generate_init_permutation();
-  std::vector<int> bestPermutation = currentPermutation;
-  int currentCost = calculate_cost(currentPermutation);
-  int bestCost = currentCost;
+  std::vector<int> current_permutation = generate_init_permutation();
+  std::vector<int> best_permutation = current_permutation;
+  int current_cost = calculate_cost(current_permutation);
+  int best_cost = current_cost;
 
-  std::vector<std::vector<int>> tabuList(NUM_DEPARTMENTS, std::vector<int>(NUM_DEPARTMENTS, 0));
+  std::vector<std::vector<int>> tabu_list(NUM_DEPARTMENTS, std::vector<int>(NUM_DEPARTMENTS, 0));
 
   int iterations = 0;
-  while (iterations < 1000)
+  while (iterations < 5000)
   { // Adjust stopping criterion as per your requirement
-    std::vector<std::pair<int, int>> neighborhood = generateNeighborhood();
-    std::pair<int, int> bestMove = findBestMove(currentPermutation, neighborhood, tabuList);
+    std::vector<std::pair<int, int>> neighbourhood = generate_neighbours();
+    std::pair<int, int> best_move = find_best_move(current_permutation, neighbourhood, tabu_list);
 
-    performMove(currentPermutation, bestMove.first, bestMove.second);
-    int newCost = calculate_cost(currentPermutation);
-    tabuList[bestMove.first][bestMove.second] = TABU_TENURE;
+    do_move(current_permutation, best_move.first, best_move.second);
+    int new_cost = calculate_cost(current_permutation);
+    tabu_list[best_move.first][best_move.second] = TABU_TENURE;
 
-    if (newCost < bestCost)
+    if (new_cost < best_cost)
     {
-      bestPermutation = currentPermutation;
-      bestCost = newCost;
+      best_permutation = current_permutation;
+      best_cost = new_cost;
     }
 
-    updateTabuList(tabuList);
+    update_tabu_list(tabu_list);
     ++iterations;
   }
 
   // Print final permutation, best permutation, and best cost
   std::cout << "Final Permutation: ";
-  for (int department : currentPermutation)
-  {
-    std::cout << department << " ";
-  }
-  std::cout << std::endl;
+  print_permutation(current_permutation);
 
   std::cout << "Best Permutation: ";
-  for (int department : bestPermutation)
-  {
-    std::cout << department << " ";
-  }
-  std::cout << std::endl;
-
-  std::cout << "Best Cost: " << bestCost << std::endl;
+  print_permutation(best_permutation);
+  std::cout << "Best Cost: " << best_cost << std::endl;
 }
 
 int main()
 {
-  // Read flow and distance matrices from files (Flow.csv and Distance.csv)
-  // Populate the flowMatrix and distanceMatrix global variables
 
   // Run Tabu Search
-  tabuSearch();
+  tabu_simple();
 
   return 0;
 }
