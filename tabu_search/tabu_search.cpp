@@ -7,7 +7,11 @@
 #include <limits>
 
 const int NUM_DEPARTMENTS = 20; // Number of departments
-const int TABU_TENURE = 15;      // Number of iterations a move remains tabu
+const int TABU_TENURE = 15;     // Number of iterations a move remains tabu
+/* FOR DYNAMIC TABU LIST ONLY */
+#define TABU_TENURE_LOWER_BOUND  25
+#define TABU_TENURE_UPPER_BOUND  5
+#define TABU_TENURE_UPDATE_INTERVAL  50
 
 std::vector<std::vector<int>> flow_matrix;
 std::vector<std::vector<int>> distance_matrix;
@@ -161,6 +165,10 @@ void tabu_simple()
   int current_cost = calculate_cost(current_permutation);
   int best_cost = current_cost;
 
+  /* ONLY FOR DYNAMIC TABU LIST */
+  std::uniform_int_distribution<int> distribution(1, 100);
+  std::random_device rd_tenure;
+
   std::vector<std::vector<int>> tabu_list(NUM_DEPARTMENTS, std::vector<int>(NUM_DEPARTMENTS, 0));
 
   int iterations = 0;
@@ -171,7 +179,17 @@ void tabu_simple()
 
     do_move(current_permutation, best_move.first, best_move.second);
     int new_cost = calculate_cost(current_permutation);
-    tabu_list[best_move.first][best_move.second] = TABU_TENURE;
+    /* FOR REGULAR TABU LIST */
+    // tabu_list[best_move.first][best_move.second] = TABU_TENURE;
+
+    /* ONLY FOR DYNAMIC TABU LIST */
+    // Randomly generate tabu tenure within the specified range
+    if (iterations % TABU_TENURE_UPDATE_INTERVAL == 0)
+    {
+      std::mt19937 generator(rd_tenure());
+      int random_tenure = distribution(generator);
+      tabu_list[best_move.first][best_move.second] = random_tenure;
+    }
 
     if (new_cost < best_cost)
     {
