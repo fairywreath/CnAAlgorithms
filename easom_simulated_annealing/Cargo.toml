@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 argmin =  { branch = "add-simulated-annealing-temp-funcs", git = "https://github.com/fairywreath/argmin.git" }
 argmin_testfunctions = "0.1.1"
+csv = "1.2.2"
+plotters = "0.3.5"
 rand = "0.8.5"
 rand_xoshiro = "0.6.0"
